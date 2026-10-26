@@ -132,6 +132,7 @@ function renderHtml(summary, history) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zenovay status (backup)</title>
 <meta name="description" content="Independent backup status page for Zenovay, checked from GitHub's servers.">
+<link rel="icon" href="data:,">
 <link rel="alternate" type="application/atom+xml" title="Zenovay status changes" href="feed.xml">
 <style>
 :root{--bg:#fafafa;--fg:#171717;--muted:#737373;--card:#fff;--line:#e5e5e5;--ok:#15803d;--okbg:#dcfce7;--warn:#b45309;--warnbg:#fef3c7;--bad:#b91c1c;--badbg:#fee2e2;--unk:#525252;--unkbg:#f5f5f5}
