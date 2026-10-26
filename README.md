@@ -29,7 +29,7 @@ For help, write to support@zenovay.com.
 
 | Path | What it is |
 |---|---|
-| `check.mjs` | Probes the public endpoints, compares with the previous run, writes the page. No dependencies. |
+| `check.mjs` | Fetches a small static file each public site serves itself (static files pass our bot protection, page requests from a datacenter do not), compares with the previous run, writes the page. No dependencies. |
 | `.github/workflows/status.yml` | Runs it on a schedule and publishes to the `gh-pages` branch. Holds no secret. |
 
 Checks run every ten minutes, but GitHub often starts scheduled runs late, so
