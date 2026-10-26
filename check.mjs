@@ -1,0 +1,226 @@
+// Zenovay backup status page: probe the public endpoints, diff against the
+// previous run, write summary.json / history.json / feed.xml / index.html.
+//
+// Usage: node check.mjs <out-dir>
+//
+// Runs on GitHub's runners and is served by GitHub Pages on purpose: nothing
+// here depends on Cloudflare, Supabase or the Zenovay API, so it keeps working
+// in the outages it exists to report. No dependencies, no secrets.
+
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
+const OUT = process.argv[2] || 'out';
+const UA = 'zenovay-status-backup/1.0 (+https://github.com/zenovay/status)';
+const TIMEOUT_MS = 20_000;
+const HISTORY_CAP = 2000;
+
+// Public endpoints only. Each check returns null when the response is what a
+// working service sends, or a short reason when it is not.
+const COMPONENTS = [
+  { id: 'website', name: 'Website', url: 'https://zenovay.com/', check: html },
+  { id: 'dashboard', name: 'Dashboard', url: 'https://app.zenovay.com/', check: html },
+  { id: 'sign-in', name: 'Sign-in', url: 'https://auth.zenovay.com/', check: html },
+  { id: 'api', name: 'API', url: 'https://api.zenovay.com/health', check: apiHealth },
+  { id: 'tracking-script', name: 'Tracking script', url: 'https://api.zenovay.com/z.js', check: script },
+  { id: 'docs', name: 'Documentation', url: 'https://docs.zenovay.com/', check: html },
+  { id: 'help', name: 'Help center', url: 'https://help.zenovay.com/', check: html },
+  { id: 'status-page', name: 'Main status page', url: 'https://status.zenovay.com/', check: html },
+];
+
+function html(res, body) {
+  if (!/text\/html/i.test(res.headers.get('content-type') || '')) return 'unexpected content type';
+  if (body.length < 200) return 'empty page';
+  return null;
+}
+
+function script(res, body) {
+  if (!/javascript/i.test(res.headers.get('content-type') || '')) return 'unexpected content type';
+  if (body.length < 1000) return 'script is empty';
+  return null;
+}
+
+function apiHealth(res, body) {
+  let json;
+  try {
+    json = JSON.parse(body);
+  } catch {
+    return 'health check did not answer with JSON';
+  }
+  const d = json?.data ?? json;
+  if (d?.status !== 'healthy') return 'API reports it is not healthy';
+  const bad = Object.entries(d.checks ?? {}).filter(([, v]) => v !== 'ok').map(([k]) => k);
+  return bad.length ? { degraded: `API dependency not ok: ${bad.join(', ')}` } : null;
+}
+
+// Cloudflare's bot protection answers a datacenter client with a challenge or a
+// reset connection. That says nothing about whether the service works, so it is
+// reported as "unknown", never as an outage.
+function isChallenge(res) {
+  return res.headers.has('cf-mitigated') || (res.status === 403 && /cloudflare/i.test(res.headers.get('server') || ''));
+}
+
+async function probeOnce(c) {
+  const started = Date.now();
+  try {
+    const res = await fetch(c.url, {
+      redirect: 'follow',
+      headers: { 'user-agent': UA, accept: '*/*' },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    const body = await res.text();
+    const ms = Date.now() - started;
+    if (isChallenge(res)) return { state: 'unknown', reason: 'blocked by bot protection', ms };
+    if (res.status >= 500) return { state: 'outage', reason: `HTTP ${res.status}`, ms };
+    if (res.status >= 400) return { state: 'outage', reason: `HTTP ${res.status}`, ms };
+    const verdict = c.check(res, body);
+    if (verdict === null) return { state: 'operational', reason: null, ms };
+    if (typeof verdict === 'object') return { state: 'degraded', reason: verdict.degraded, ms };
+    return { state: 'outage', reason: verdict, ms };
+  } catch (err) {
+    const ms = Date.now() - started;
+    const code = err?.cause?.code || err?.name || '';
+    if (code === 'ECONNRESET' || code === 'UND_ERR_SOCKET') return { state: 'unknown', reason: 'connection reset (bot protection)', ms };
+    if (code === 'TimeoutError' || code === 'AbortError') return { state: 'outage', reason: 'no response within 20 s', ms };
+    if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') return { state: 'outage', reason: 'DNS lookup failed', ms };
+    return { state: 'unknown', reason: `could not connect (${code || 'error'})`, ms };
+  }
+}
+
+// A single failed request is not an outage: retry once before believing it.
+async function probe(c) {
+  const first = await probeOnce(c);
+  if (first.state === 'operational') return first;
+  await new Promise((r) => setTimeout(r, 5000));
+  return probeOnce(c);
+}
+
+async function readJson(path, fallback) {
+  try {
+    return JSON.parse(await readFile(path, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+
+const LABEL = { operational: 'Operational', degraded: 'Degraded', outage: 'Outage', unknown: 'Unknown' };
+
+function overallOf(states) {
+  const v = Object.values(states).map((s) => s.state);
+  if (v.includes('outage')) return 'outage';
+  if (v.includes('degraded')) return 'degraded';
+  if (v.every((s) => s === 'unknown')) return 'unknown';
+  return 'operational';
+}
+
+const HEADLINE = {
+  operational: 'All checked systems are working',
+  degraded: 'Some systems are degraded',
+  outage: 'Some systems are not responding',
+  unknown: 'Could not check our systems',
+};
+
+function renderHtml(summary, history) {
+  const rows = COMPONENTS.map((c) => {
+    const s = summary.states[c.id];
+    return `<li class="row"><span class="name">${esc(c.name)}</span><span class="meta">${s.reason ? esc(s.reason) + ' · ' : ''}checked <time datetime="${esc(s.checkedAt)}">${esc(s.checkedAt.slice(11, 16))} UTC</time></span><span class="pill ${s.state}">${LABEL[s.state]}</span></li>`;
+  }).join('\n');
+  const recent = history.slice(-15).reverse().map((h) => {
+    const name = COMPONENTS.find((c) => c.id === h.component)?.name ?? h.component;
+    return `<li><time datetime="${esc(h.at)}">${esc(h.at.slice(0, 16).replace('T', ' '))} UTC</time> ${esc(name)}: ${LABEL[h.from] ?? esc(h.from)} → ${LABEL[h.to] ?? esc(h.to)}${h.reason ? ` (${esc(h.reason)})` : ''}</li>`;
+  }).join('\n');
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zenovay status (backup)</title>
+<meta name="description" content="Independent backup status page for Zenovay, checked from GitHub's servers.">
+<link rel="alternate" type="application/atom+xml" title="Zenovay status changes" href="feed.xml">
+<style>
+:root{--bg:#fafafa;--fg:#171717;--muted:#737373;--card:#fff;--line:#e5e5e5;--ok:#15803d;--okbg:#dcfce7;--warn:#b45309;--warnbg:#fef3c7;--bad:#b91c1c;--badbg:#fee2e2;--unk:#525252;--unkbg:#f5f5f5}
+@media (prefers-color-scheme:dark){:root{--bg:#0a0a0a;--fg:#fafafa;--muted:#a3a3a3;--card:#171717;--line:#262626;--ok:#4ade80;--okbg:#14532d;--warn:#fbbf24;--warnbg:#451a03;--bad:#f87171;--badbg:#450a0a;--unk:#d4d4d4;--unkbg:#262626}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:40px 16px 64px}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:32px 0 8px}
+.lede{color:var(--muted);margin:0 0 24px}.banner{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-weight:600;margin-bottom:16px}
+.banner.operational{border-color:var(--ok)}.banner.degraded{border-color:var(--warn)}.banner.outage{border-color:var(--bad)}
+ul{list-style:none;margin:0;padding:0}.rows{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:12px 18px;border-top:1px solid var(--line)}.row:first-child{border-top:0}
+.name{font-weight:500;flex:1 1 140px}.meta{color:var(--muted);font-size:13px;flex:1 1 200px}
+.pill{font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px}.operational.pill{color:var(--ok);background:var(--okbg)}
+.degraded.pill{color:var(--warn);background:var(--warnbg)}.outage.pill{color:var(--bad);background:var(--badbg)}.unknown.pill{color:var(--unk);background:var(--unkbg)}
+.log li{color:var(--muted);font-size:13px;padding:2px 0}.stale{display:none;background:var(--warnbg);color:var(--warn);border-radius:12px;padding:12px 18px;margin-bottom:16px}
+a{color:inherit}footer{color:var(--muted);font-size:13px;margin-top:32px}
+</style>
+</head>
+<body>
+<main>
+<h1>Zenovay status</h1>
+<p class="lede">Backup page, checked from GitHub's servers and hosted by GitHub, so it stays up when our own infrastructure does not. Incident details and history are on <a href="https://status.zenovay.com">status.zenovay.com</a>.</p>
+<div class="stale" id="stale">These results are more than an hour old. The checker itself may be delayed, so treat them as out of date.</div>
+<div class="banner ${summary.overall}">${HEADLINE[summary.overall]}</div>
+<ul class="rows">
+${rows}
+</ul>
+<h2>Recent changes</h2>
+<ul class="log">
+${recent || '<li>No changes recorded yet.</li>'}
+</ul>
+<footer>
+<p>"Unknown" means the check could not get an answer (for example because our bot protection blocked the checker), not that the service is down. Checks run every few minutes, but GitHub can delay them, so each row shows when it was actually checked.</p>
+<p>Updated <time datetime="${esc(summary.generatedAt)}" id="gen">${esc(summary.generatedAt.slice(0, 16).replace('T', ' '))} UTC</time> · <a href="summary.json">summary.json</a> · <a href="history.json">history.json</a> · <a href="feed.xml">Atom feed</a> · <a href="https://github.com/zenovay/status">source</a> · Help: <a href="mailto:support@zenovay.com">support@zenovay.com</a></p>
+</footer>
+</main>
+<script>
+var t=Date.parse(document.getElementById('gen').getAttribute('datetime'));
+if(Date.now()-t>3600000)document.getElementById('stale').style.display='block';
+</script>
+</body>
+</html>
+`;
+}
+
+function renderFeed(history, generatedAt) {
+  const base = 'https://zenovay.github.io/status/';
+  const entries = history.slice(-50).reverse().map((h, i) => {
+    const name = COMPONENTS.find((c) => c.id === h.component)?.name ?? h.component;
+    const title = `${name}: ${LABEL[h.to] ?? h.to}`;
+    return `<entry><id>${base}#${esc(h.component)}-${esc(h.at)}-${i}</id><title>${esc(title)}</title><updated>${esc(h.at)}</updated><link href="${base}"/><content type="text">${esc(`${name} changed from ${LABEL[h.from] ?? h.from} to ${LABEL[h.to] ?? h.to}${h.reason ? ` (${h.reason})` : ''}.`)}</content></entry>`;
+  }).join('\n');
+  return `<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><id>${base}</id><title>Zenovay status changes</title><updated>${esc(generatedAt)}</updated><link href="${base}"/><link rel="self" href="${base}feed.xml"/>
+${entries}
+</feed>
+`;
+}
+
+async function main() {
+  await mkdir(OUT, { recursive: true });
+  const previous = await readJson(join(OUT, 'summary.json'), { states: {} });
+  const history = await readJson(join(OUT, 'history.json'), []);
+
+  const results = await Promise.all(COMPONENTS.map(probe));
+  const generatedAt = new Date().toISOString();
+  const states = {};
+  COMPONENTS.forEach((c, i) => {
+    const r = results[i];
+    states[c.id] = { state: r.state, reason: r.reason, responseMs: r.ms, checkedAt: generatedAt };
+    const before = previous.states?.[c.id]?.state;
+    if (before && before !== r.state) history.push({ component: c.id, from: before, to: r.state, reason: r.reason, at: generatedAt });
+  });
+
+  const summary = { generatedAt, overall: overallOf(states), states, sourceCommit: process.env.GITHUB_SHA ?? null };
+  const kept = history.slice(-HISTORY_CAP);
+
+  await writeFile(join(OUT, 'summary.json'), JSON.stringify(summary, null, 2) + '\n');
+  await writeFile(join(OUT, 'history.json'), JSON.stringify(kept, null, 2) + '\n');
+  await writeFile(join(OUT, 'feed.xml'), renderFeed(kept, generatedAt));
+  await writeFile(join(OUT, 'index.html'), renderHtml(summary, kept));
+  await writeFile(join(OUT, '.nojekyll'), '');
+
+  for (const c of COMPONENTS) console.log(`${states[c.id].state.padEnd(11)} ${c.name}${states[c.id].reason ? ` (${states[c.id].reason})` : ''}`);
+}
+
+await main();
