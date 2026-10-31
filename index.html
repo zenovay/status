@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zenovay status (backup)</title>
+<meta name="description" content="Independent backup status page for Zenovay, checked from GitHub's servers.">
+<link rel="icon" href="data:,">
+<link rel="alternate" type="application/atom+xml" title="Zenovay status changes" href="feed.xml">
+<style>
+:root{--bg:#fafafa;--fg:#171717;--muted:#737373;--card:#fff;--line:#e5e5e5;--ok:#15803d;--okbg:#dcfce7;--warn:#b45309;--warnbg:#fef3c7;--bad:#b91c1c;--badbg:#fee2e2;--unk:#525252;--unkbg:#f5f5f5}
+@media (prefers-color-scheme:dark){:root{--bg:#0a0a0a;--fg:#fafafa;--muted:#a3a3a3;--card:#171717;--line:#262626;--ok:#4ade80;--okbg:#14532d;--warn:#fbbf24;--warnbg:#451a03;--bad:#f87171;--badbg:#450a0a;--unk:#d4d4d4;--unkbg:#262626}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:40px 16px 64px}h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:32px 0 8px}
+.lede{color:var(--muted);margin:0 0 24px}.banner{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-weight:600;margin-bottom:16px}
+.banner.operational{border-color:var(--ok)}.banner.degraded{border-color:var(--warn)}.banner.outage{border-color:var(--bad)}
+ul{list-style:none;margin:0;padding:0}.rows{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:12px 18px;border-top:1px solid var(--line)}.row:first-child{border-top:0}
+.name{font-weight:500;flex:1 1 140px}.meta{color:var(--muted);font-size:13px;flex:1 1 200px}
+.pill{font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px}.operational.pill{color:var(--ok);background:var(--okbg)}
+.degraded.pill{color:var(--warn);background:var(--warnbg)}.outage.pill{color:var(--bad);background:var(--badbg)}.unknown.pill{color:var(--unk);background:var(--unkbg)}
+.log li{color:var(--muted);font-size:13px;padding:2px 0}.stale{display:none;background:var(--warnbg);color:var(--warn);border-radius:12px;padding:12px 18px;margin-bottom:16px}
+a{color:inherit}footer{color:var(--muted);font-size:13px;margin-top:32px}
+</style>
+</head>
+<body>
+<main>
+<h1>Zenovay status</h1>
+<p class="lede">Backup page, checked from GitHub's servers and hosted by GitHub, so it stays up when our own infrastructure does not. Incident details and history are on <a href="https://status.zenovay.com">status.zenovay.com</a>.</p>
+<div class="stale" id="stale">These results are more than an hour old. The checker itself may be delayed, so treat them as out of date.</div>
+<div class="banner operational">All checked systems are working</div>
+<ul class="rows">
+<li class="row"><span class="name">Website</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Dashboard</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Sign-in page</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">API</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Sign-in service</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Account database</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Analytics database</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Tracking script</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Documentation</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Help center</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+<li class="row"><span class="name">Main status page</span><span class="meta">checked <time datetime="2026-10-31T15:23:34.916Z">15:23 UTC</time></span><span class="pill operational">Operational</span></li>
+</ul>
+<h2>Recent changes</h2>
+<ul class="log">
+<li><time datetime="2026-10-28T11:38:26.712Z">2026-10-28 11:38 UTC</time> Help center: Outage → Operational</li>
+<li><time datetime="2026-10-28T11:32:53.452Z">2026-10-28 11:32 UTC</time> Help center: Operational → Outage (no response within 20 s)</li>
+<li><time datetime="2026-10-28T11:27:04.620Z">2026-10-28 11:27 UTC</time> Website: Outage → Operational</li>
+<li><time datetime="2026-10-28T11:21:24.463Z">2026-10-28 11:21 UTC</time> Website: Operational → Outage (no response within 20 s)</li>
+<li><time datetime="2026-10-28T08:36:59.880Z">2026-10-28 08:36 UTC</time> Help center: Outage → Operational</li>
+<li><time datetime="2026-10-28T08:31:43.722Z">2026-10-28 08:31 UTC</time> Help center: Operational → Outage (no response within 20 s)</li>
+<li><time datetime="2026-10-28T08:15:22.737Z">2026-10-28 08:15 UTC</time> Help center: Outage → Operational</li>
+<li><time datetime="2026-10-28T08:10:12.456Z">2026-10-28 08:10 UTC</time> Help center: Operational → Outage (no response within 20 s)</li>
+<li><time datetime="2026-10-28T08:04:24.095Z">2026-10-28 08:04 UTC</time> Website: Outage → Operational</li>
+<li><time datetime="2026-10-28T07:59:16.378Z">2026-10-28 07:59 UTC</time> Website: Operational → Outage (no response within 20 s)</li>
+<li><time datetime="2026-10-28T07:52:32.477Z">2026-10-28 07:52 UTC</time> Help center: Outage → Operational</li>
+<li><time datetime="2026-10-28T07:52:32.477Z">2026-10-28 07:52 UTC</time> Dashboard: Outage → Operational</li>
+<li><time datetime="2026-10-28T07:52:32.477Z">2026-10-28 07:52 UTC</time> Website: Outage → Operational</li>
+<li><time datetime="2026-10-28T07:46:52.935Z">2026-10-28 07:46 UTC</time> Help center: Operational → Outage (no response within 20 s)</li>
+<li><time datetime="2026-10-28T07:46:52.935Z">2026-10-28 07:46 UTC</time> Dashboard: Operational → Outage (no response within 20 s)</li>
+</ul>
+<footer>
+<p>The site rows fetch a small file each site serves itself, so they show whether that site is up and answering. The API, sign-in service and database rows come from the API's health check, which queries each of them on every check. "Unknown" means the check could not get an answer, not that the service is down. Checks run every few minutes, but GitHub can delay them, so each row shows when it was actually checked.</p>
+<p>Updated <time datetime="2026-10-31T15:23:34.916Z" id="gen">2026-10-31 15:23 UTC</time> · <a href="summary.json">summary.json</a> · <a href="history.json">history.json</a> · <a href="feed.xml">Atom feed</a> · <a href="https://github.com/zenovay/status">source</a> · Help: <a href="mailto:support@zenovay.com">support@zenovay.com</a></p>
+</footer>
+</main>
+<script>
+var t=Date.parse(document.getElementById('gen').getAttribute('datetime'));
+if(Date.now()-t>3600000)document.getElementById('stale').style.display='block';
+</script>
+</body>
+</html>
