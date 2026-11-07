@@ -1,0 +1,142 @@
+[
+  {
+    "component": "help",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T07:01:33.119Z"
+  },
+  {
+    "component": "help",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T07:12:54.484Z"
+  },
+  {
+    "component": "website",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T07:24:12.696Z"
+  },
+  {
+    "component": "website",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T07:29:55.789Z"
+  },
+  {
+    "component": "website",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T07:46:52.935Z"
+  },
+  {
+    "component": "dashboard",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T07:46:52.935Z"
+  },
+  {
+    "component": "help",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T07:46:52.935Z"
+  },
+  {
+    "component": "website",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T07:52:32.477Z"
+  },
+  {
+    "component": "dashboard",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T07:52:32.477Z"
+  },
+  {
+    "component": "help",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T07:52:32.477Z"
+  },
+  {
+    "component": "website",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T07:59:16.378Z"
+  },
+  {
+    "component": "website",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T08:04:24.095Z"
+  },
+  {
+    "component": "help",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T08:10:12.456Z"
+  },
+  {
+    "component": "help",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T08:15:22.737Z"
+  },
+  {
+    "component": "help",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T08:31:43.722Z"
+  },
+  {
+    "component": "help",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T08:36:59.880Z"
+  },
+  {
+    "component": "website",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T11:21:24.463Z"
+  },
+  {
+    "component": "website",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T11:27:04.620Z"
+  },
+  {
+    "component": "help",
+    "from": "operational",
+    "to": "outage",
+    "reason": "no response within 20 s",
+    "at": "2026-10-28T11:32:53.452Z"
+  },
+  {
+    "component": "help",
+    "from": "outage",
+    "to": "operational",
+    "reason": null,
+    "at": "2026-10-28T11:38:26.712Z"
+  }
+]
