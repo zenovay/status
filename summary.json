@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-11-14T12:16:04.571Z",
+  "overall": "operational",
+  "states": {
+    "website": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 175,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "dashboard": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 160,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "sign-in": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 260,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "api": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 1678,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "sign-in-service": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": null,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "account-database": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": null,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "analytics-database": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": null,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "tracking-script": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 56,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "docs": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 213,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "help": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 249,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    },
+    "status-page": {
+      "state": "operational",
+      "reason": null,
+      "responseMs": 280,
+      "checkedAt": "2026-11-14T12:16:04.571Z"
+    }
+  },
+  "sourceCommit": "2bfe57291ab3c9c7af285e4410f412bbce858473"
+}
